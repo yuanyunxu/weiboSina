@@ -1,0 +1,44 @@
+from twisted.enterprise import adbapi
+from scrapy import log
+from scrapy.http import Request
+from scrapy.exceptions import DropItem
+import time,MySQLdb
+import MySQLdb.cursors
+
+class Test123Pipeline(object):
+    def __init__(self):
+        self.conn = MySQLdb.connect(
+                host = '127.0.0.1',
+                port = 3306,
+                user = 'root',
+                passwd = 'yuanyunxu',
+                db = 'mydb',
+                )
+        self.cur = self.conn.cursor()
+        self.cur.execute("create table if not exists test2(id int)")
+#    def process_item(self, item, spider):
+      
+    
+        #if item['user_id'] and item['user_nickname'] and item['blog_num'] and item['following_num'] and item['follower_num']:
+        print item['user_id'], item['user_nickname'] , item['blog_num'], item['following_num'], item['follower_num'],'**********************************************************************************************************************'
+        self.cur.execute(\
+                "insert into userInfo(user_id,user_label,user_nickname,blog_num,following_num,follower_num) values (%s,%s,%s,%s,%s,%s)",
+                (item['user_id'][0],
+                item['user_label'],
+                item['user_nickname'][0],
+                item['blog_num'][0],
+                item['following_num'][0],
+                item['follower_num'][0])
+                )
+        if item['user_discription']:
+            self.cur.execute(\
+                    "insert into userInfo(user_discription) values (%s)",(item['user_discription'])
+                    )
+        if item['user_tags']:
+            self.cur.execute(\
+                    "insert into userInfo(user_tags) values (%s)",
+                    (str(item['user_tags']))
+                    )
+        self.conn.commit()
+        self.conn.close()
+        return item

@@ -1,0 +1,46 @@
+from twisted.enterprise import adbapi
+from scrapy import log
+from scrapy.http import Request
+from scrapy.exceptions import DropItem
+import time,MySQLdb
+import MySQLdb.cursors
+
+class Test123Pipeline(object):
+    def __init__(self):
+        self.dbpool = adbapi.ConnectionPool('MySQLdb',
+                host = '127.0.0.1',
+                db = 'mydb',
+                user = 'root',
+                password = 'yuanyunxu',
+                cursorclass = MySQLdb.cursors.DictCursor,
+                charset = 'utf8',
+                use_unicode = True
+                )
+    def process_item(self, item, spider):
+        print spider
+        query = self.dbpool.runInteraction(self._conditional_insert,item)
+        query.addErrback(self.handle_error)
+        return item
+    
+    def conditional_insert(self,tx,item):
+        if item.get('user_id') and item.get('user_nickname') and item.get('blog_num') and item.get('following_num') and item.get('follower_num'):
+            tex.execute(\
+                    "insert into userInfo(user_id,user_label,user_nickname,blog_num,following_num,follower_num) values (%s,%s,%s,%s,%s,%s)",
+                    (item['user_id'][0],
+                    item['user_label'],
+                    item['user_nickname'][0],
+                    item['blog_num'][0],
+                    item['following_num'][0],
+                    item['follower_num'][0])
+                    )
+        if item.get('user_discription'):
+            tex.execute(\
+                    "insert into userInfo(user_discription) values (%s)",(item['user_discription'])
+                    )
+        if item.get('user_tags'):
+            tex.execute(\
+                    "insert into userInfo(user_tags) values (%s)",
+                    (str(item['user_tags']))
+                    )
+    def hadle_erro(self,e):
+        log.err(e)

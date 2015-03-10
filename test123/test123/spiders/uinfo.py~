@@ -1,0 +1,40 @@
+#coding:utf-8
+import os,re
+from scrapy.http import Request
+from scrapy.selector import Selector
+from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
+from scrapy.contrib.spiders import CrawlSpider, Rule
+from test123.items import Test123Item
+
+class UinfoSpider(CrawlSpider):
+    name = "uInfo"
+    allowed_domains = ["weibo.cn"]
+    start_urls = []
+    filename = 'yule'
+    lstdir = os.listdir(filename)
+    item = Test123Item()
+    for doc in lstdir:
+        start_urls.extend([line.strip() for line in open(filename+'/'+doc,'r').readlines()])
+
+    def start_requests(self):
+        log.start(logfile = '/home/yyx/infoScrapy.log',loglevel = IFO,logstdout = True)
+        cookiePath = '/home/yyx/infoCookies.txt'
+        cookieValue = [line.strip() for line in open(cookiePath,'r').readlines()]
+        cookieDict = {}
+        for k in xrange(len(cookieValue)):
+            cookieDict[cookieValue[k].split('\t')[-2]] = cookieValue[k].split('\t')[-1]
+        for url in self.start_urls:
+            yield Request(url,cookies = cookieDict,callback = self.parse)
+    def parse(self, response):
+        self.item['user_id'] = re.sub(r'\?(.*)','',response.url.split('/')[-1])
+        self.item['user_label'] = '娱乐' 
+        self.item['user_nickname'] = response.xpath('//span[@class="ctt"][1]/text()').extract()
+        self.item['blog_num'] = response.xpath('//div[@class="tip2"][1]/span[1]/text()').extract()
+        self.item['following_num'] = response.xpath('//div[@class="tip2"][1]/text()').extract()
+        self.item['follower_num'] = response.xpath('//div[@class="tip2"][1]/a[2]/text()').extract()
+        self.item['user_discription'] = response.xpath('div[@class="ut"]/span[@style]/text()').extract()
+        return Request("http://weibo.cn/account/privacy/tags/?uid='+self.item['uid']",callback = self.parseTags)
+    
+    def parseTags(self,response):
+        self.item['user_tags'] = response.xpath('//div[@class="c"][3]/a/text()').extract()
+        return self.item
