@@ -40,6 +40,16 @@ class Test123Pipeline(object):
                    user_tags=user_tags+user_tag+' ' 
                 cur.execute(\
                         "update test2 set user_tags='%s' where user_id='%d'"%(user_tags,int(item['user_id']))
+            if item['user_id'] and item['blog']:
+                for blogId in item['blog']:
+                    cur.execute("insert into blogs (blog_flag,user_id,blog_content,forward_num,comment_num,praise_num,pub_time,download_time) values (%d,%d,'%s',%d,%d,%d,'%s','%s');"\
+                            %(item['blog'][blogId]['flag'],\
+                            int(item['user_id'],item['blog'][blogId]['content'][0],\
+                            int(re.findall('\d+',item['blog'][blogId]['praiseList'][-3])[0]),\
+                            int(re.findall('\d+',item['blog'][blogId]['praiseList'][-2])[0]),\
+                            int(re.findall('\d+',item['blog'][blogId]['praisiList'][-4])[0]),\
+                            item['blog'][blogId]['pub_time'],\
+                            item['blog'][blogId]['download_time'])
                     )
         finally:
             conn.commit()

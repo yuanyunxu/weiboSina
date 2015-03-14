@@ -18,15 +18,16 @@ class Test123Item(Item):
     user_tags = Field()             #用户标签
     user_description = Field()      #用户简介
 
-    pageNum = Field()               #总页数
-    blog_flag = Field()
-    blog_content = Field()
-    blog_forwad_content = Field()
-    blog_forward = Field()
-    blog_comment = Field()
-    blog_praise = Field()
+    blog = Field()
+    #pageNum = Field()               #总页数
+    #blog_flag = Field()
+    #blog_content = Field()
+    #blog_forwad_content = Field()
+    #blog_forward = Field()
+    #blog_comment = Field()
+    #blog_praise = Field()
 
-    following_id = Field()
-    following_nickname = Field()
-    following_tags = Field()
-    following_description = Field()
+    #following_id = Field()
+    #following_nickname = Field()
+    #following_tags = Field()
+    #following_description = Field()
