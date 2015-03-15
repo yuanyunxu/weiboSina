@@ -19,7 +19,8 @@ class Test123Item(Item):
     user_description = Field()      #用户简介
 
     blog = Field()
-    #pageNum = Field()               #总页数
+    pageCursor = Field()
+    pageNum = Field()               #总页数
     #blog_flag = Field()
     #blog_content = Field()
     #blog_forwad_content = Field()
