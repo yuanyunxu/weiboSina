@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import scrapy,re
 from url.items import UrlItem
+from scrapy.contrib.spiders import CrawlSpider
 
-class UidSpider(scrapy.Spider):
+class UidSpider(CrawlSpider):
     name = "uid"
     allowed_domains = ["weibo.com"]
     start_urls = (

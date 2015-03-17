@@ -50,26 +50,30 @@ class UinfoSpider(CrawlSpider):
         #tmpBlogForwardContent = response.select('//span[@class="cmt"]/following-sibling::span[@class="ctt"]/text()').extract()
         #self.item['blog_forward_content'].extend(tmpBlogForwardContent)
         try:
-            print response.select('//div[@id="pagelist"]/form[1]/div/text()').extract()
+            #print response.select('//div[@id="pagelist"]/form[1]/div/text()').extract()
             totalNum = int(re.findall(r'/(\d+)',response.select('//div[@id="pagelist"]/form/div/text()').extract()[1])[0])
-            print 'totalNum=',totalNum
+            #print 'totalNum=',totalNum
             if totalNum >= 50:
                 self.item['pageNum'] = 50
             else:
                 self.item['pageNum'] = totalNum
         except:
             self.item['pageNum'] = 0
-        return Request("http://weibo.cn/account/privacy/tags/?uid="+self.item['user_id'],cookies = self.cookieDict,callback = self.parse2)
+        time.sleep(random.uniform(2,20))
+        return Request("http://weibo.cn/account/privacy/tags/?uid="+self.item['user_id'],cookies = self.cookieDict,callback = self.parse1)
     
-    def parse2(self,response):
+    def parse1(self,response):
         response = HtmlXPathSelector(response)
         self.item['user_tags'] = response.select('//div[@class="c"][3]/a/text()').extract()
-        print 'user_tags=',self.item['user_tags']
-        print 'pageNum=',self.item['pageNum']
+        #print 'user_tags=',self.item['user_tags']
+        #print 'pageNum=',self.item['pageNum']
+        return Request("http://weibo.cn/"+str(self.item['user_id'])+'/info',cookies = self.cookieDict,callback = self.parse2)
+    def par
         for k in xrange(1,self.item['pageNum']+1):
             print 'processing yield................',k
             self.item['pageCursor'] = k
-            yield Request("http://weibo.cn/?uid="+str(self.item['user_id'])+'?page='+str(k),cookies = self.cookieDict,callback = self.parseContent)
+            time.sleep(random.uniform(1,10))
+            yield Request("http://weibo.cn/"+str(self.item['user_id'])+'?page='+str(k),cookies = self.cookieDict,callback = self.parseContent)
     
     def parseContent(self,response):
         print 'processing parseContent................'
@@ -78,33 +82,37 @@ class UinfoSpider(CrawlSpider):
         #self.item['blog_content'].extend(tmpBlogContent)
         #tmpBlogForwardContent = response.select('//span[@class="cmt"]/following-sibling::span[@class="ctt"]/text()').extract()
         #self.item['blog_forward_content'].extend(tmpBlogForwardContent)
-
         try:
-            tmpBlogNum = len(response.select('//div[@id]'))
+            tmpBlogNum = len(response.select('//div[@id]').extract())#包括微博和最后的翻页表格
         except:
             tmpBlogNum = 0
-        for blogIdf in xrange(tmpBlogNum+1):
+        print 'tmpBlogNum = ',tmpBlogNum
+        for blogIdf in xrange(tmpBlogNum):
+            print 'tmpBlogNum=',tmpBlogNum
             blogId = self.item['pageCursor']*100+blogIdf
             self.item['blog'] = {}
             self.item['blog'][blogId] = {}
             print 'blogId=',blogId
-            blogMC =  response.select('//div[@id][%d]/div[1]/span[@class="cmt"]'%blogIdf).extract()
-            blogCtt = response.select('//div[@id][%d]/div[1]/span[@class="ctt"]'%blogIdf).extract()
-            if not blogMC:
-                self.item['blog'][blogId]['flag'] = 1
-                blogCmt = response.select('//div[@id][%d]/div/text()'%blogIdf).extract()
-                blogCtt.extend(blogCmt)
+            self.item['blog'][blogId]['blog_id'] = str(self.item['user_id'])+str(blogId)
+            blogMC =  response.select('//div[@id][%d]/div[1]/span[@class="cmt"]/text()'%blogIdf).extract()
+            blogCtt = response.select('//div[@id][%d]/div[1]/span[@class="ctt"]/text()'%blogIdf).extract()
+            if blogCtt:
+                if blogMC:
+                    self.item['blog'][blogId]['flag'] = 1
+                    blogCmt = response.select('//div[@id][%d]/div/text()'%blogIdf).extract()
+                    blogCtt = blogCtt[0] + blogCmt[0]
+                else:
+                    self.item['blog'][blogId]['flag'] = 0
+                    blogCtt = blogCtt[0]
+                self.item['blog'][blogId]['content'] = blogCtt
             else:
-                self.item['blog'][blogId]['flag'] = 0
-            try:
-                self.item['blog'][blogId]['content'] = blogCtt[0]
-            except:
+                self.item['blog'][blogId]['flag'] = 2
                 self.item['blog'][blogId]['content'] = ''
-            self.item['blog'][blogId]['praiseList'] = response.select('//div[@id][%d]/a/text()'%blogIdf).extract()
+            self.item['blog'][blogId]['praiseList'] = response.select('//div[@id][%d]/div/a/text()'%blogIdf).extract()
             self.item['blog'][blogId]['pub_time'] = response.select('//div[@id][%d]/div/span[@class="ct"]/text()'%blogIdf).extract()
             self.item['blog'][blogId]['download_time'] = time.strftime('%Y-%m-%d',time.localtime(time.time()))
             print 'content=',self.item['blog'][blogId]['content']
             print 'praiseList=',self.item['blog'][blogId]['praiseList']
             print 'pub_time=',self.item['blog'][blogId]['pub_time']
             print 'download_tim=',self.item['blog'][blogId]['download_time']
-            return self.item
+        return self.item

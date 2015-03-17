@@ -8,7 +8,7 @@
 
 class UrlPipeline(object):
     def process_item(self, item, spider):
-        f = open(item['url'],'w')
+        f = open('yule/'+item['url'],'w')
         for uid in item['uidLst']:
             f.write('http://weibo.cn/'+uid+'\n') 
         f.close()
