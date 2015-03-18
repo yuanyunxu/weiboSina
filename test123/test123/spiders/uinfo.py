@@ -61,20 +61,38 @@ class UinfoSpider(CrawlSpider):
             self.item['pageNum'] = 0
         time.sleep(random.uniform(2,20))
         return Request("http://weibo.cn/account/privacy/tags/?uid="+self.item['user_id'],cookies = self.cookieDict,callback = self.parse1)
-    
     def parse1(self,response):
         response = HtmlXPathSelector(response)
         self.item['user_tags'] = response.select('//div[@class="c"][3]/a/text()').extract()
         #print 'user_tags=',self.item['user_tags']
         #print 'pageNum=',self.item['pageNum']
         return Request("http://weibo.cn/"+str(self.item['user_id'])+'/info',cookies = self.cookieDict,callback = self.parse2)
-    def par
+    def parse2(self,resposne):
+        try:
+            self.item['user_sexual'] = re.findall('性别:(.*?)<br>',response.body)[0]
+        except:
+            self.item['user_sexual'] = '未知'
+            print 'Cannot find the sexual.'
+        try:
+            self.item['user_birth'] = re.findall('生日:(.*?)<br>',response.body)[0]
+        except:
+            self.item['user_birth'] = '未知'
+            print 'Cannot find the birthdate'
+        try:
+            self.item['user_location'] = re.findall('地区:(.*?)<br>',response.body)[0]
+        except:
+            self.item['user_location'] = '未知'
+            print 'Cannot find the user_loacation'
+        try:
+            self.item['user_cert'] = re.findall('认证信息:(.*?)<br>',response.body)[0]
+        except:
+            self.item['user_cert'] = '未知'
+            print 'Cannot find the user_certInformation'
         for k in xrange(1,self.item['pageNum']+1):
             print 'processing yield................',k
             self.item['pageCursor'] = k
             time.sleep(random.uniform(1,10))
             yield Request("http://weibo.cn/"+str(self.item['user_id'])+'?page='+str(k),cookies = self.cookieDict,callback = self.parseContent)
-    
     def parseContent(self,response):
         print 'processing parseContent................'
         response = HtmlXPathSelector(response)

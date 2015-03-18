@@ -37,9 +37,17 @@ class Test123Pipeline(object):
             if item['user_tags']:
                 user_tags = ''
                 for user_tag in item['user_tags']:
-                   user_tags=user_tags+user_tag+' ' 
+                   user_tags=user_tags+user_tag+' '
                 cur.execute(\
                         "update userInfo set user_tags='%s' where user_id='%d'"%(user_tags,int(item['user_id'])))
+            if item['user_sexual']:
+                cur.execute("update userInfo set user_sexual='%s' where user_id='%d'"%(item['user_sexual'],int(item['user_id'])))
+            if item['user_birth']:
+                cur.execute("update userInfo set user_birth='%s' where user_id='%d'"%(item['user_birth'],int(item['user_id'])))
+            if item['user_location']:
+                cur.execute("update userInfo set user_location='%s' where user_id='%d'"%(item['user_location'],int(item['user_id'])))
+            if item['user_cert']:
+                cur.execute("update userInfo set user_cert='%s' where user_id='%d'"%(item['user_cert'],int(item['user_id'])))
         except:
             print 'insert into userInfo error'
         finally:
@@ -57,5 +65,5 @@ class Test123Pipeline(object):
                         item['blog'][blogId]['pub_time'][0],\
                         str(item['blog'][blogId]['download_time'])))
                 conn.commit()
-        conn.close() 
+        conn.close()
         return item

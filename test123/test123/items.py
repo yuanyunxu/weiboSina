@@ -17,6 +17,10 @@ class Test123Item(Item):
     follower_num = Field()          #粉丝数
     user_tags = Field()             #用户标签
     user_description = Field()      #用户简介
+    user_sexual = Field()
+    user_birth = Field()
+    user_location = Field()
+    user_cert = Field()
 
     blog = Field()
     pageCursor = Field()
