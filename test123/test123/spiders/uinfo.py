@@ -1,5 +1,5 @@
 #coding:utf-8
-import os,re,time,random
+import os,re,time,random,uuid
 from scrapy.http import Request
 from scrapy.selector import HtmlXPathSelector
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
@@ -13,7 +13,6 @@ class UinfoSpider(CrawlSpider):
     start_urls = []
     filename = 'yule'
     lstdir = os.listdir(filename)
-    item = Test123Item()
     cookiePath = '/home/yyx/infoCookies.txt'
     cookieValue = [line.strip() for line in open(cookiePath,'r').readlines()]
     cookieDict = {}
@@ -22,84 +21,77 @@ class UinfoSpider(CrawlSpider):
     for doc in lstdir:
         start_urls.extend([line.strip() for line in open(filename+'/'+doc,'r').readlines()])
     def start_requests(self):
+        self.item = Test123Item()
         for url in self.start_urls:
             yield Request(url,cookies = self.cookieDict,callback = self.parse)
     def parse(self, response):
-        url = response.url
+        self.user_id = re.findall(r'\d{10}',response.url)[0]
         response = HtmlXPathSelector(response)
-        self.item['user_id'] = re.sub(r'\?(.*)','',url.split('/')[-1])
-        #print self.item['user_id']
         self.item['user_label'] = '娱乐' 
-        #print self.item['user_label']
-        self.item['user_nickname'] = response.select('//span[@class="ctt"][1]/text()').extract()
-        #print self.item['user_nickname']
         self.item['blog_num'] = response.select('//div[@class="tip2"][1]/span[1]/text()').extract()
-        #print self.item['blog_num']
         self.item['following_num'] = response.select('//div[@class="tip2"][1]/a[1]/text()').extract()
-        #print self.item['following_num']
         self.item['follower_num'] = response.select('//div[@class="tip2"][1]/a[2]/text()').extract()
-        #print self.item['follower_num']
-        self.item['user_description'] = response.select('//div[@class="ut"]/span[@style]/text()').extract()
-        #print self.item['user_description']
-
-
-        #self.item['blog_content'] = []
-        #tmpBlogContent = response.select('//div[@id]/span[@class="ctt"]/text()').extract()
-        #self.item['blog_content'].extend(tmpBlogContent)
-        #self.item['blog_forward_content'] = []
-        #tmpBlogForwardContent = response.select('//span[@class="cmt"]/following-sibling::span[@class="ctt"]/text()').extract()
-        #self.item['blog_forward_content'].extend(tmpBlogForwardContent)
         try:
-            #print response.select('//div[@id="pagelist"]/form[1]/div/text()').extract()
             totalNum = int(re.findall(r'/(\d+)',response.select('//div[@id="pagelist"]/form/div/text()').extract()[1])[0])
-            #print 'totalNum=',totalNum
             if totalNum >= 50:
                 self.item['pageNum'] = 50
             else:
                 self.item['pageNum'] = totalNum
         except:
             self.item['pageNum'] = 0
-        time.sleep(random.uniform(2,20))
-        return Request("http://weibo.cn/account/privacy/tags/?uid="+self.item['user_id'],cookies = self.cookieDict,callback = self.parse1)
+        return Request("http://weibo.cn/account/privacy/tags/?uid="+self.user_id,cookies = self.cookieDict,callback = self.parse1)
     def parse1(self,response):
         response = HtmlXPathSelector(response)
         self.item['user_tags'] = response.select('//div[@class="c"][3]/a/text()').extract()
-        #print 'user_tags=',self.item['user_tags']
-        #print 'pageNum=',self.item['pageNum']
-        return Request("http://weibo.cn/"+str(self.item['user_id'])+'/info',cookies = self.cookieDict,callback = self.parse2)
-    def parse2(self,resposne):
+        return Request("http://weibo.cn/"+str(self.user_id)+'/info',cookies = self.cookieDict,callback = self.parse2)
+    def parse2(self,response):
+        self.item['user_id'] = re.findall(r'\d{10}',response.url)[0]
         try:
-            self.item['user_sexual'] = re.findall('性别:(.*?)<br>',response.body)[0]
+            self.item['user_nickname'] = re.findall('昵称:(.*?)<br/>',response.body)[0]
+        except:
+            self.item['user_nickname'] = '未知'
+            print 'Cannot find the user_nickname.'
+        try:
+            self.item['user_sexual'] = re.findall('性别:(.*?)<br/>',response.body)[0]
         except:
             self.item['user_sexual'] = '未知'
             print 'Cannot find the sexual.'
         try:
-            self.item['user_birth'] = re.findall('生日:(.*?)<br>',response.body)[0]
+            self.item['user_birth'] = re.findall('生日:(.*?)<br/>',response.body)[0]
         except:
             self.item['user_birth'] = '未知'
             print 'Cannot find the birthdate'
         try:
-            self.item['user_location'] = re.findall('地区:(.*?)<br>',response.body)[0]
+            self.item['user_location'] = re.findall('地区:(.*?)<br/>',response.body)[0]
         except:
             self.item['user_location'] = '未知'
             print 'Cannot find the user_loacation'
         try:
-            self.item['user_cert'] = re.findall('认证信息:(.*?)<br>',response.body)[0]
+            self.item['user_cert'] = re.findall('认证信息：(.*?)<br/>',response.body)[0]
         except:
             self.item['user_cert'] = '未知'
             print 'Cannot find the user_certInformation'
+        try:
+            self.item['user_ori'] = re.findall('性取向：(.*?)<br/>',response.body)[0]
+        except:
+            self.item['user_ori'] = '未知'
+            print 'Cannot find the user_ori'
+        try:
+            self.item['user_status'] = re.findall('感情状况：(.*?)<br/>',response.body)[0]
+        except:
+            self.item['user_status'] = '未知'
+            print 'Cannot find the user_status'
+        try:
+            self.item['user_description'] = re.findall('简介:(.*?)<br/>',response.body)[0]
+        except:
+            self.item['user_description'] = '未知'
+            print 'Cannot find the user_description'
         for k in xrange(1,self.item['pageNum']+1):
             print 'processing yield................',k
-            self.item['pageCursor'] = k
-            time.sleep(random.uniform(1,10))
             yield Request("http://weibo.cn/"+str(self.item['user_id'])+'?page='+str(k),cookies = self.cookieDict,callback = self.parseContent)
     def parseContent(self,response):
         print 'processing parseContent................'
         response = HtmlXPathSelector(response)
-        #tmpBlogContent = response.select('//div[@id]/span[@class="ctt"]/text()').extract()ss
-        #self.item['blog_content'].extend(tmpBlogContent)
-        #tmpBlogForwardContent = response.select('//span[@class="cmt"]/following-sibling::span[@class="ctt"]/text()').extract()
-        #self.item['blog_forward_content'].extend(tmpBlogForwardContent)
         try:
             tmpBlogNum = len(response.select('//div[@id]').extract())#包括微博和最后的翻页表格
         except:
@@ -107,7 +99,7 @@ class UinfoSpider(CrawlSpider):
         print 'tmpBlogNum = ',tmpBlogNum
         for blogIdf in xrange(tmpBlogNum):
             print 'tmpBlogNum=',tmpBlogNum
-            blogId = self.item['pageCursor']*100+blogIdf
+            blogId = uuid.uuid1()
             self.item['blog'] = {}
             self.item['blog'][blogId] = {}
             print 'blogId=',blogId

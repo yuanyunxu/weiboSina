@@ -21,9 +21,10 @@ class Test123Item(Item):
     user_birth = Field()
     user_location = Field()
     user_cert = Field()
+    user_ori = Field()
+    user_status = Field()
 
     blog = Field()
-    pageCursor = Field()
     pageNum = Field()               #总页数
     #blog_flag = Field()
     #blog_content = Field()
