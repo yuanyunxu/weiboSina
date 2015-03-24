@@ -28,7 +28,6 @@ class Test123Pipeline(object):
         cur.execute("set NAMES UTF8")
         print '************************************************'
         print '************************************************'
-<<<<<<< HEAD
         if item['user_id'] and item['user_nickname'] and item['blog_num'] and item['following_num'] and item['follower_num']:
             cur.execute("insert into userInfo (user_id,user_label,user_nickname,blog_num,following_num,follower_num,user_description,user_sexual,user_birth,user_location,user_cert,user_ori,user_status) values (%d,'%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s');"%(int(item['user_id']),item['user_label'],item['user_nickname'],re.findall(r'\d+',item['blog_num'][0])[0],re.findall(r'\d+',item['following_num'][0])[0],re.findall(r'\d+',item['follower_num'][0])[0],item['user_description'],item['user_sexual'],item['user_birth'],item['user_location'],item['user_cert'],item['user_ori'],item['user_status']))
         if item['user_tags']:
@@ -37,19 +36,8 @@ class Test123Pipeline(object):
                user_tags=user_tags+user_tag+' '
             cur.execute(\
                     "update userInfo set user_tags='%s' where user_id='%d'"%(user_tags,int(item['user_id'])))
-=======
-        try:
-            if item['user_id'] and item['user_nickname'] and item['blog_num'] and item['following_num'] and item['follower_num']:
-                cur.execute("insert into userInfo (user_id,user_label,user_nickname,blog_num,following_num,follower_num) values (%d,'%s','%s','%s','%s','%s');"%(int(item['user_id']),item['user_label'],item['user_nickname'][0],re.findall(r'\d+',item['blog_num'][0])[0],re.findall(r'\d+',item['following_num'][0])[0],re.findall(r'\d+',item['follower_num'][0])[0]))
-
             if item['user_description']:
                 cur.execute("update userInfo set user_description='%s' where user_id='%d'"%(item['user_description'][0],int(item['user_id'])))
-            if item['user_tags']:
-                user_tags = ''
-                for user_tag in item['user_tags']:
-                   user_tags=user_tags+user_tag+' '
-                cur.execute(\
-                        "update userInfo set user_tags='%s' where user_id=%d"%(user_tags,int(item['user_id'])))
             if item['user_sexual']:
                 cur.execute("update userInfo set user_sexual='%s' where user_id=%d"%(item['user_sexual'],int(item['user_id'])))
             if item['user_birth']:
@@ -58,11 +46,6 @@ class Test123Pipeline(object):
                 cur.execute("update userInfo set user_location='%s' where user_id=%d"%(item['user_location'],int(item['user_id'])))
             if item['user_cert']:
                 cur.execute("update userInfo set user_cert='%s' where user_id=%d"%(item['user_cert'],int(item['user_id'])))
-        except:
-            print 'insert into userInfo error'
-        finally:
->>>>>>> 3ace63cb0aba125897bdbbe61ece00b001cfdb9b
-            conn.commit()
         if item['user_id'] and item['blog']:
             for blogId in item['blog']:
                 cur.execute("insert into blogs (blog_id,blog_flag,user_id,blog_content,blog_forward_num,blog_comment_num,blog_praise_num,blog_pub_time,blog_download_time) values ('%s',%d,%d,'%s',%d,%d,%d,'%s','%s');"\
