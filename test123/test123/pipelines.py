@@ -46,16 +46,19 @@ class Test123Pipeline(object):
             print 'insert blogs error'
         if item['user_id'] and item['blog']:
             for blogId in item['blog']:
-                cur.execute("insert into blogs (blog_id,blog_flag,user_id,blog_content,blog_forward_num,blog_comment_num,blog_praise_num,blog_pub_time,blog_download_time) values ('%s',%d,%d,'%s',%d,%d,%d,'%s','%s');"\
-                        %(item['blog'][blogId]['blog_id'],
-                        item['blog'][blogId]['flag'],\
-                        int(item['user_id']),\
-                        item['blog'][blogId]['content'],\
-                        int(re.findall('\d+',item['blog'][blogId]['praiseList'][-3])[0]),\
-                        int(re.findall('\d+',item['blog'][blogId]['praiseList'][-2])[0]),\
-                        int(re.findall('\d+',item['blog'][blogId]['praiseList'][-4])[0]),\
-                        item['blog'][blogId]['pub_time'][0],\
-                        str(item['blog'][blogId]['download_time'])))
+                try:
+                    cur.execute("insert into blogs (blog_id,blog_flag,user_id,blog_content,blog_forward_num,blog_comment_num,blog_praise_num,blog_pub_time,blog_download_time) values ('%s',%d,%d,'%s',%d,%d,%d,'%s','%s');"\
+                            %(item['blog'][blogId]['blog_id'],
+                            item['blog'][blogId]['flag'],\
+                            int(item['user_id']),\
+                            item['blog'][blogId]['content'],\
+                            int(re.findall('\d+',item['blog'][blogId]['praiseList'][-3])[0]),\
+                            int(re.findall('\d+',item['blog'][blogId]['praiseList'][-2])[0]),\
+                            int(re.findall('\d+',item['blog'][blogId]['praiseList'][-4])[0]),\
+                            item['blog'][blogId]['pub_time'][0],\
+                            str(item['blog'][blogId]['download_time'])))
+                except:
+                    continue
         conn.commit()
         conn.close()
         return item
